@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
 use Log;
+use App\Jobs\enrichMovieJobV2;
 
 class StoreFromCamera implements ShouldQueue
 {
@@ -36,19 +37,8 @@ class StoreFromCamera implements ShouldQueue
      */
     public function handle(): void
     {
-        Log::info([$this->title, $this->year, $this->media]);
+       // Log::info([$this->title, $this->year, $this->media]);
 
-        $response = Http::get('https://www.omdbapi.com/', [
-            't'      => $this->title,
-            'type'   => 'movie',
-            'y'      => $this->year ?? "",
-            'apikey' => 'd1bcc068',
-        ]);
-        $data = $response->json();
-        if ($data['Response'] == "False") {
-            Log::info("--Issue with ".$this->title);
-            Log::info($response->json());
-            Log::info("----------------");
             try {
                 if ($this->title) {
                     manualMovieHandling::create([
@@ -67,31 +57,6 @@ class StoreFromCamera implements ShouldQueue
                 Log::info($e);
             }
 
-        } else {
-
-            $movie = [
-                'title'     => $data['Title'],
-                'year'      => $data['Year'],
-                'director'  => $data['Director'],
-                'actors'    => json_encode($data['Actors']),
-                'plot'      => $data['Plot'],
-                'mediatype' => $this->media,
-                'quantity'  => 1,
-                'imgpath'   => $this->image 
-            ];
-
-            $exist = movies::where("title", $movie['title'])->limit(1)->get();
-
-            if ($exist->count() == 0) {
-                movies::create($movie);
-                echo "created";
-            } else {
-                $exist->first()->quantity = $exist->first()->quantity + 1;
-                $exist->first()->save();
-                echo "count updated";
-            }
-
-        }
-
+       
     }
 }

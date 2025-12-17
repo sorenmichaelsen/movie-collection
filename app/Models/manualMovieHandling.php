@@ -10,7 +10,8 @@ class manualMovieHandling extends Model
         'title',
         'year',
         'eannumber',
-        'mediatype'
+        'mediatype',
+        'scanimg'
     ];
 
 

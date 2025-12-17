@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string("eannumber")->nullable();
             $table->integer("year")->nullable();
             $table->string("mediatype")->nullable();
+            $table->string("scanimg")->nullable();
 
         });
     }

@@ -31,6 +31,7 @@ return new class extends Migration
             $table->boolean('localimg')->default(0);
             $table->string("imdb_id")->nullable();
             $table->string("plex_id")->nullable();
+            $table->boolean("ripped")->default(0);
 
         });
     }

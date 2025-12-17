@@ -18,13 +18,14 @@ class enrichMovieJobV2 implements ShouldQueue
     private $year;
     private $media;
     private $eannumber;
-
-    public function __construct($title, $year, $media = null, $eannumber = null)
+    private $filename;
+    public function __construct($title, $year, $media = null, $eannumber = null, $filename)
     {
         $this->title = $title;
         $this->year  = $year;
         $this->media = $media;
         $this->eannumber   = $eannumber;
+        $this->filename = $filename;
 
     }
 
@@ -47,10 +48,10 @@ class enrichMovieJobV2 implements ShouldQueue
 
         // 'results' er en array. Tag første resultat (hvis nogen)
         $results = $searchResponse['results'] ?? [];
-
+       // Log::info($results);
         if (count($results) === 0) {
             // Log::info("Manually fix");
-            manualMovieHandling::create(["title" => $this->title, "eannumber" => $this->eannumber ?? null, "mediatype" => $this->media ?? null, "year" => $this->year]);
+            manualMovieHandling::create(["title" => $this->title, "eannumber" => $this->eannumber ?? null, "mediatype" => $this->media ?? null, "year" => $this->year, "scanimg"=> $this->filename]);
 
         }
         else if (count($results) == 1) {
@@ -63,13 +64,13 @@ class enrichMovieJobV2 implements ShouldQueue
             $credits  = $tmdb->getMovieCredits($tmdbId);
             $external = $tmdb->getExternalIds($tmdbId);
             $store    = $tmdb->importMovieWithCredits($tmdbId, $this->eannumber ?? null, "DVD", $this->title);
-            // Log::info("STORED CORRECTLY");
+             Log::info("STORED CORRECTLY");
             //return response()->json(['created' => 1, 'message' => 'Success'], 202);
 
         } else {
-            // Log::info("Manually fix");
+             Log::info("Manually fix");
 
-            manualMovieHandling::create(["title" => $this->title, "eannumber" => $this->eannumber, "mediatype" => $this->media, "year" => $this->year]);
+            manualMovieHandling::create(["title" => $this->title, "eannumber" => $this->eannumber, "mediatype" => $this->media, "year" => $this->year, "scanimg"=>$this->filename]);
             //return response()->json(['created' => 0, 'message' => 'for mange resultater'], 202);
 
         }

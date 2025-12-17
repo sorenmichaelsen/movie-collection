@@ -36,7 +36,7 @@ class enrichMovieJob implements ShouldQueue
      */
     public function handle(): void
     {
-        Log::info([$this->title, $this->year, $this->media]);
+        //Log::info([$this->title, $this->year, $this->media]);
 
         $response = Http::get('https://www.omdbapi.com/', [
             't'      => $this->title,

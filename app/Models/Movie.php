@@ -24,7 +24,9 @@ class Movie extends Model
         'rating',
         'hd',
         'plex_id',
-        'tmdb_id'
+        'tmdb_id',
+        'scanimg',
+        'ripped'
 
     ];
 

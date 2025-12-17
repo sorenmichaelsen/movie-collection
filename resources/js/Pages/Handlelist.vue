@@ -11,6 +11,8 @@ import InputText from 'primevue/inputtext';
 import Toast from 'primevue/toast';
 import Image from 'primevue/image';
 import { useToast } from "primevue/usetoast";
+import Select from 'primevue/select';
+import ToggleSwitch from 'primevue/toggleswitch';
 
 
 
@@ -40,7 +42,15 @@ const movieForm = useForm({
     imgpath: '',
     alternativetitle: '',
     tmdb_id: '',
+    media: '',
+    selectedMedia: ref({name:"Dvd"}),
+    ripped: ref(false)
 });
+
+const medias = ref([
+    { name: 'Dvd' },
+    { name: 'Bluray' },
+]);
 
 const onPage = (event) => {
     // event.page is 0-based; Laravel expects 1-based
@@ -236,15 +246,20 @@ const openSearchWindow = (ean) => {
                 </div>
             </div>
 
-            <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">EAN </label>
-                  <Button label="google" icon="pi pi-search" @click="openSearchWindow(movieForm.ean)" />
+                      <div class="flex items-center gap-4 mb-2">
+                <label for="email" class="font-semibold w-24">Media type</label>
+        <Select v-model="movieForm.selectedMedia" :options="medias" optionLabel="name" placeholder="Select media" />
             </div>
+                     <div class="flex items-center gap-4 mb-2">
+                <label for="email" class="font-semibold w-24">Ripped</label>
+        <ToggleSwitch v-model="movieForm.ripped" />
+            </div>
+
             <div class="flex items-center gap-4 mb-2">
                 <label for="username" class="font-semibold w-24 ">Title</label>
                 <InputText id="title" v-model="movieForm.title" class="flex-auto" autocomplete="off" />
             </div>
-            <div class="flex items-center gap-4 mb-2">
+           <div class="flex items-center gap-4 mb-2">
                 <label for="username" class="font-semibold w-24 ">Alternative Title</label>
                 <InputText id="title" v-model="movieForm.alternativetitle" class="flex-auto" autocomplete="off" />
                 <Button label="Search" icon="pi pi-search" @click="searchMovieDb(movieForm.alternativetitle)" />
@@ -253,7 +268,7 @@ const openSearchWindow = (ean) => {
                 <label for="email" class="font-semibold w-24">Year</label>
                 <InputText id="year" v-model="movieForm.year" class="flex-auto" autocomplete="off" />
             </div>
-           
+ 
 
 
             <div class="flex justify-end gap-2">

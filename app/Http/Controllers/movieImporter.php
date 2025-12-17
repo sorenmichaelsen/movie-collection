@@ -3,14 +3,15 @@ namespace App\Http\Controllers;
 
 use App\Jobs\enrichMovieJob;
 use App\Jobs\enrichMovieJobV2;
+use App\Jobs\StoreFromCamera;
 use Illuminate\Http\Request;
 use Log;
+use Illuminate\Support\Str;
 
 class movieImporter extends Controller
 {
     public function createFromCamera(Request $request)
     {
-##Obsolete
         $request->validate([
             'image' => 'required|file|image|max:1024', // optional validation
         ]);

@@ -154,8 +154,9 @@ class TheMovieDbApiService
     public function importMovieWithCredits(
         int $tmdbId,
         $ean = null,
-        $physicalMedia = null,
-        $alternativeTitle = null
+        $physicalMedia,
+        $alternativeTitle = null,
+        $ripped
     ): ?\App\Models\Movie {
         $details = $this->getMovieDetails($tmdbId, 'en-US');
         $credits = $this->getMovieCredits($tmdbId, 'en-US');
@@ -165,7 +166,7 @@ class TheMovieDbApiService
             return null;
         }
 
-        return \DB::transaction(function () use ($details, $credits, $tmdbId, $ean, $physicalMedia, $alternativeTitle) {
+        return \DB::transaction(function () use ($details, $credits, $tmdbId, $ean, $physicalMedia, $alternativeTitle, $ripped) {
 
             // Opret ny film hvis ikke eksisterer, med quantity = 1
             $movie = Movie::firstOrCreate(
@@ -183,6 +184,7 @@ class TheMovieDbApiService
                     'imdb_id'           => $details['imdb_id'] ?? null,
                     'alternative_title' => $alternativeTitle,
                     'quantity'          => 1,
+                    'ripped'            =>$ripped
                 ]
             );
 
