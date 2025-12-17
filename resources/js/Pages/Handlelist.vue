@@ -20,6 +20,9 @@ const props = defineProps({
     movies: {
         type: Object,
     },
+    count: {
+        type: Number
+    }
 });
 const visible = ref(false);
 const loading = ref(false);
@@ -35,7 +38,8 @@ const movieForm = useForm({
     director: '',
     actors: '',
     imgpath: '',
-    alternativetitle: ''
+    alternativetitle: '',
+    tmdb_id: '',
 });
 
 const onPage = (event) => {
@@ -53,11 +57,8 @@ const showModal = (data) => {
     movieForm.title = ""
     movieForm.year = data.year
     movieForm.alternativetitle = data.title
-    movieForm.plot = "";
-    movieForm.ean = data.eannumber;
-    movieForm.imgpath = data.imgpath;
-    movieForm.actors = "";
-    movieForm.director = "";
+    movieForm.ean = data.eannumber
+
 
 }
 
@@ -144,45 +145,36 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 const selectResult = (result) => {
     // result shape typically has: title, overview (plot), release_date, poster_path
     movieForm.title = result.title || result.name || movieForm.title;
-    movieForm.year = (result.release_date || '').split('-')[0] || movieForm.year;
-    movieForm.plot = result.overview || movieForm.plot;
-    movieForm.imgpath = result.poster_path ? result.poster_path.replace(/^\//, '') : movieForm.imgpath;
+    
+    movieForm.tmdb_id = result.id
     // If you want to store full URL instead: movieForm.imgpath = TMDB_IMAGE_BASE + result.poster_path
     // TMDB doesn't return director/actors in the search endpoint — you must call /movie/{id}/credits if you need them.
     // Close results or keep them visible — up to you.
 
 
     loading.value = true;
-    axios
-        .get('/api/search/themoviedbdetails?id=' + encodeURIComponent(result.id))
-        .then(response => {
-            // TMDB usually returns { results: [...] }
-            movieForm.imdb = response.data.imdb_id
-        setTimeout(() => {
-            searchMovie(response.data.imdb_id)
-            }, 500); // 1000 ms = 1 second
-
-        })
-        .catch(error => {
-            console.error(error)
-            // optional: show toast
-            toast.add({ severity: 'error', summary: 'Search failed', detail: 'Could not search TMDB', life: 3000 });
-
-        })
-        .finally(() => {
-            loading.value = false;
-
-            setTimeout(() => {
+    
+     setTimeout(() => {
                 saveMovie();
             }, 500); // 1000 ms = 1 second
 
             searchResults.value = [];
-        });
 
 }
 
 
+const openSearchWindow = (ean) => {
+    console.log(ean)
+    if (!ean) return;
 
+    const url = `https://www.google.com/search?q=${encodeURIComponent(ean)}`;
+
+    window.open(
+        url,
+        'eanSearchWindow',
+        'width=900,height=900,top=100,left=100,menubar=no,toolbar=no,location=no,status=no'
+    );
+};
 
 </script>
 
@@ -195,7 +187,7 @@ const selectResult = (result) => {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        Handle List
+                        Handle List: {{ props.count }}
                         <DataTable :value="props.movies.data" tableStyle="min-width: 50rem" :paginator="true"
                             :rows="props.movies.per_page" :totalRecords="props.movies.total" :lazy="true"
                             :first="(props.movies.current_page - 1) * props.movies.per_page" @page="onPage">
@@ -211,6 +203,7 @@ const selectResult = (result) => {
                             </Column>
 
                         </DataTable>
+
                     </div>
                 </div>
             </div>
@@ -244,9 +237,8 @@ const selectResult = (result) => {
             </div>
 
             <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">Imdb id</label>
-                <InputText id="imdb" v-model="movieForm.imdb" class="flex-auto" autocomplete="off" /> <Button
-                    label="Search" icon="pi pi-search" @click="searchMovie(movieForm.imdb)" />
+                <label for="email" class="font-semibold w-24">EAN </label>
+                  <Button label="google" icon="pi pi-search" @click="openSearchWindow(movieForm.ean)" />
             </div>
             <div class="flex items-center gap-4 mb-2">
                 <label for="username" class="font-semibold w-24 ">Title</label>
@@ -261,35 +253,7 @@ const selectResult = (result) => {
                 <label for="email" class="font-semibold w-24">Year</label>
                 <InputText id="year" v-model="movieForm.year" class="flex-auto" autocomplete="off" />
             </div>
-            <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">director</label>
-                <InputText id="year" v-model="movieForm.director" class="flex-auto" autocomplete="off" />
-            </div>
-            <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">Actors</label>
-                <InputText id="year" v-model="movieForm.actors" class="flex-auto" autocomplete="off" />
-            </div>
-
-            <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">Plot</label>
-                <InputText id="imdb" v-model="movieForm.plot" class="flex-auto" autocomplete="off" />
-            </div>
-            <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">EAN</label>
-                <InputText id="imdb" v-model="movieForm.ean" class="flex-auto" autocomplete="off" />
-            </div>
-            <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">Media</label>
-                <InputText id="imdb" v-model="movieForm.media" class="flex-auto" autocomplete="off" />
-            </div>
-            <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">poster</label>
-                <InputText id="imdb" v-model="movieForm.imgpath" class="flex-auto" autocomplete="off" />
-            </div>
-            <div class="flex items-center gap-4 mb-2" v-if="movieForm.imgpath">
-                <Image :src="`/storage/images/${movieForm.imgpath}`" alt="Image" width="250" />
-            </div>
-
+           
 
 
             <div class="flex justify-end gap-2">

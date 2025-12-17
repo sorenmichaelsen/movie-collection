@@ -13,19 +13,24 @@ return new class extends Migration
     {
         Schema::create('movies', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('tmdb_id')->nullable()->index();
             $table->timestamps();
             $table->string("title");
             $table->string("alternative_title")->nullable();
             $table->string("director")->nullable();
-            $table->json("actors")->nullable();
-            $table->integer("year")->nullable();
-            $table->tinyInteger('amount')->default(1);
-            $table->bigInteger("eannumber")->nullable();
+            $table->tinyInteger('quantity')->default(0);
+            $table->string("eannumber")->nullable();
             $table->string("mediatype")->nullable();
-            $table->boolean("quantity")->default(0);
-            $table->string("imgpath")->nullable();
+            $table->string("poster_path")->nullable();
+            $table->string("backdrop_path")->nullable();
             $table->longText('plot')->nullable();
-
+            $table->integer('duration')->nullable();    // minutter
+            $table->date('releast_at')->nullable(); 
+            $table->decimal('rating', 3, 1)->nullable();
+            $table->boolean('hd')->default(0);
+            $table->boolean('localimg')->default(0);
+            $table->string("imdb_id")->nullable();
+            $table->string("plex_id")->nullable();
 
         });
     }

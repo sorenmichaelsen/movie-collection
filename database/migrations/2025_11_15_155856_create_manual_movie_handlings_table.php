@@ -15,16 +15,9 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string("title")->nullable();
-            $table->string("alternative_title")->nullable();
-            $table->string("director")->nullable();
-            $table->json("actors")->nullable();
+            $table->string("eannumber")->nullable();
             $table->integer("year")->nullable();
-            $table->tinyInteger('amount')->default(1);
-            $table->bigInteger("eannumber")->nullable();
             $table->string("mediatype")->nullable();
-            $table->boolean("quantity")->default(0);
-            $table->string("imgpath")->nullable();
-            $table->longText('plot')->nullable();
 
         });
     }

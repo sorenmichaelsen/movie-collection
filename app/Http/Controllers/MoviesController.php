@@ -1,169 +1,70 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Jobs\enrichMovieJob;
-use App\Jobs\StoreFromCamera;
-use App\Models\manualMovieHandling;
-use App\Models\movies;
+use App\Models\Movie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Log;
 
 class MoviesController extends Controller
 {
 
-    public function handlelist()
-    {
-        $movies = manualMovieHandling::orderBy('id', 'asc')->paginate(10); // important: paginate()
+    // public function readFromFile()
+    // {
 
-        return Inertia::render('Handlelist', [
-            'movies' => $movies,
-            'count'  => $movies->total(), // or your old $totalMovies if you prefer
-        ]);
-    }
+    //     $CSV     = Storage::disk('local')->get('list.csv');
+    //     $lines   = explode(PHP_EOL, $CSV);
+    //     $header  = collect(str_getcsv(array_shift($lines)));
+    //     $rows    = collect($lines);
+    //     $counter = 0;
 
-    public function create(Request $request)
-    {
-        enrichMovieJob::dispatch($request->title, $request->year, "DVD");
+    //     foreach ($rows as $row) {
+    //         $data = explode(",", $row);
+    //     $title = $data[1];
+    //     $title = str_replace("Special edition", "", $title);
+    //     $title = str_replace("(DVD)", "", $title);
+    //     enrichMovieJobV2::dispatch($data[1], $data[2], $data[3] ?? "DVD", $data[4] ?? 00);
 
-        $exist = movies::where("title", $request->title)->where("year", $request->year)->first();
+    //     }
 
-        if ($exist->count() == 0) {
-            movies::create($request->all());
-        } else {
-            $exist->quantity = $exist->quantity + 1;
-            $exist->save();
-        }
-
-    }
-
-    public function createFromCam(Request $request)
-    {
-        enrichMovieJob::dispatch($request->title, $request->year, $request->media ?? "DVD", $request->ean);
-    }
-
-    public function readFromFile()
-    {
-
-        $CSV     = Storage::disk('local')->get('list.csv');
-        $lines   = explode(PHP_EOL, $CSV);
-        $header  = collect(str_getcsv(array_shift($lines)));
-        $rows    = collect($lines);
-        $counter = 0;
-        foreach ($rows as $row) {
-            $data = explode(",", $row);
-            enrichMovieJob::dispatch($data[1], $data[2], $data[3] ?? "DVD", $data[4] ?? 00, $row, $counter);
-            $counter = $counter + 1;
-        }
-
-    }
-
-    public function fetchimdbid(Request $request)
-    {
-        Log::info($request->imdbid);
-
-        $response = Http::get('https://www.omdbapi.com/', [
-            'i'      => $request->imdbid,
-            'apikey' => 'd1bcc068',
-        ]);
-        return $response;
-    }
-
-    public function updatehandlelistmovie(Request $request)
-    {Log::info($request->all());
-
-        movies::create([
-            'title'             => $request->title,
-            'alternative_title' => $request->alternativetitle,
-            'director'          => $request->director,
-            'actors'            => $request->actors,
-            'year'              => $request->year,
-            'quantity'          => 1,
-            'eannumber'         => $request->ean,
-            'mediatype'         => $request->media ?? "DVD",
-            'plot'              => $request->plot,
-            'imgpath'           => $request->imgpath,
-        ]);
-
-        $manual = manualMovieHandling::find($request->id);
-        $manual->delete();}
-
-    public function updatemovie(Request $request)
-    {
-        Log::info($request->all());
-        // $movie = movies::updateOrCreate(
-        //     ['id' => $request->id],
-        //     [$request->all()]
-        // );
-
-        $movie                    = movies::find($request->id);
-        $movie->title             = $request->title;
-        $movie->alternative_title = $request->alternativetitle;
-        $movie->director          = $request->director;
-        $movie->actors            = $request->actors;
-        $movie->year              = $request->year;
-        $movie->eannumber         = $request->ean;
-        $movie->mediatype         = $request->media ?? "DVD";
-        $movie->plot              = $request->plot;
-        $movie->imgpath           = $request->imgpath;
-        $movie->imdb_id           = $request->imdb_id;
-        $movie->save();
-        Log::info($movie);
-    }
+    // }
 
     public function search(Request $request)
     {
-        $request->validate([
-            'search' => 'nullable|string|max:255',
-        ]);
+        $search    = $request->input('search');
+        $sort      = $request->input('sort', 'title');    // default sort by title
+        $direction = $request->input('direction', 'asc'); // default asc
 
-        $search = $request->input('search');
+        $query = Movie::query();
 
-        $moviesQuery = movies::query();
-
-        if ($search) {
-            // adjust columns as needed (title, description, etc.)
-            $moviesQuery->where(function ($q) use ($search) {
+        // --- Search filter ---
+        if (! empty($search)) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('plot', 'like', "%{$search}%");
+                    ->orWhere('imdb_id', 'like', "%{$search}%")
+                    ->orWhere('releast_at', 'like', "%{$search}%");
             });
         }
 
-        $movies = $moviesQuery->orderBy('id', 'asc')->paginate(20)
-            ->appends($request->only('search')); // preserve search on paginator links
+        // --- Allowed sortable columns ---
+        $allowedSorts = ['title', 'releast_at', 'quantity'];
+
+        if (! in_array($sort, $allowedSorts)) {
+            $sort = 'title'; // fallback
+        }
+
+        // --- Sorting ---
+        $query->orderBy($sort, $direction);
+
+        // --- Pagination ---
+        $movies = $query->paginate(10)->withQueryString();
 
         return Inertia::render('Dashboard', [
-            'movies' => $movies,
-            'search' => $search, // pass back initial search so client starts in-sync
+            'movies'    => $movies,
+            'search'    => $search,
+            'sort'      => $sort,
+            'direction' => $direction,
         ]);
-    }
-
-    public function createFromCamera(Request $request)
-    {
-
-        $request->validate([
-            'image' => 'required|file|image|max:1024', // optional validation
-        ]);
-
-        // Store file
-        $filename = Str::random(10) . ".jpg";
-        $year     = $request->year;
-        if ($year == "None") {
-            $year = null;
-        }
-        $path = $request->file('image')->storeAs('images', $filename, 'public');
-        Log::info($request);
-        StoreFromCamera::dispatch($request->title, $year, $request->director, $request->actors, $filename, "DVD");
-    }
-    public function createFromCamera1(Request $request)
-    {
-
-        $filename = Str::random(10) . ".jpg";
-
-        StoreFromCamera::dispatch("Det Forsømte Forår", null, "", "", $filename, "DVD");
     }
 
     public function searchthemovedb(Request $request)
@@ -187,13 +88,31 @@ class MoviesController extends Controller
 
     }
 
-    public function theMovieDbDetails(Request $request)
+    public function localSearch(Request $request)
     {
+        $q = trim($request->query('q', ''));
 
-        $response = Http::withToken(ENV('TheMovieDb_token'))->get("https://api.themoviedb.org/3/movie/" . $request->id);
+        if (mb_strlen($q) < 1) {
+            return response()->json([]);
+        }
 
-        return $response;
+        // Split input i søgeord
+        $terms = preg_split('/\s+/', mb_strtolower($q), -1, PREG_SPLIT_NO_EMPTY);
 
+        $query = Movie::query();
+
+        // Hvert ord skal findes et sted i titlen (AND)
+        foreach ($terms as $term) {
+            $query->whereRaw("LOWER(title) LIKE ?", ["%{$term}%"]);
+        }
+
+        $movies = $query
+            ->select('id', 'title', 'releast_at', 'poster_path')
+            ->orderBy('title')
+            ->limit(30)
+            ->get();
+
+        return response()->json($movies);
     }
 
 }

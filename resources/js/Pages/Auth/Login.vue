@@ -30,7 +30,6 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
         <Head title="Log in" />
 
         <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
@@ -38,63 +37,76 @@ const submit = () => {
         </div>
 
         <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
+    <!-- Toplinje: Email + Password + Login-knap -->
+    <div class="flex items-end gap-4">
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
+        <!-- Email -->
+        <div class="flex-1">
+            <InputLabel for="email" value="Email" />
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+            <TextInput
+                id="email"
+                type="email"
+                class="mt-1 block w-full"
+                v-model="form.email"
+                required
+                autocomplete="username"
+            />
 
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                />
+            <InputError class="mt-2" :message="form.errors.email" />
+        </div>
 
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
+        <!-- Password -->
+        <div class="flex-1">
+            <InputLabel for="password" value="Password" />
 
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600"
-                        >Remember me</span
-                    >
-                </label>
-            </div>
+            <TextInput
+                id="password"
+                type="password"
+                class="mt-1 block w-full"
+                v-model="form.password"
+                required
+                autocomplete="current-password"
+            />
 
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Forgot your password?
-                </Link>
+            <InputError class="mt-2" :message="form.errors.password" />
+        </div>
 
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Log in
-                </PrimaryButton>
-            </div>
-        </form>
-    </GuestLayout>
+        <!-- Login button -->
+        <div class="pb-[2px]">
+            <PrimaryButton
+                :class="{ 'opacity-25': form.processing }"
+                :disabled="form.processing"
+            >
+                Log in
+            </PrimaryButton>
+        </div>
+
+    </div>
+
+
+    <!-- NEDERSTE LINJE: Remember me + Forgot your password -->
+    <div class="mt-4 flex items-center justify-between">
+
+        <!-- Remember me -->
+        <label class="flex items-center">
+            <Checkbox name="remember" v-model:checked="form.remember" />
+            <span class="ms-2 text-sm text-gray-600">Remember me</span>
+        </label>
+
+        <!-- Forgot password -->
+        <Link
+            v-if="canResetPassword"
+            :href="route('password.request')"
+            class="text-sm text-gray-600 underline hover:text-gray-900"
+        >
+            Forgot your password?
+        </Link>
+
+    </div>
+
+</form>
+
+
 </template>
