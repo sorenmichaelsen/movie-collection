@@ -13,6 +13,7 @@ import Image from 'primevue/image';
 import { useToast } from "primevue/usetoast";
 import Select from 'primevue/select';
 import ToggleSwitch from 'primevue/toggleswitch';
+import Card from 'primevue/card'
 
 
 
@@ -43,13 +44,24 @@ const movieForm = useForm({
     alternativetitle: '',
     tmdb_id: '',
     media: '',
-    selectedMedia: ref({name:"Dvd"}),
-    ripped: ref(false)
+    selectedMedia: ref({ name: "Dvd" }),
+    ripped: ref(false),
+    movie_edition: ref({ name: "Standard" }),
+    storagebox: '',
+    scanimg: '',
 });
 
 const medias = ref([
     { name: 'Dvd' },
     { name: 'Bluray' },
+]);
+const editions = ref([
+    { name: 'Standard' },
+    { name: 'Special' },
+    { name: 'DirectorsCut' },
+    { name: 'Limited' },
+    { name: 'twoMoviesInOne' },
+
 ]);
 
 const onPage = (event) => {
@@ -68,6 +80,7 @@ const showModal = (data) => {
     movieForm.year = data.year
     movieForm.alternativetitle = data.title
     movieForm.ean = data.eannumber
+    movieForm.scanimg = data.scanimg
 
 
 }
@@ -155,7 +168,7 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 const selectResult = (result) => {
     // result shape typically has: title, overview (plot), release_date, poster_path
     movieForm.title = result.title || result.name || movieForm.title;
-    
+
     movieForm.tmdb_id = result.id
     // If you want to store full URL instead: movieForm.imgpath = TMDB_IMAGE_BASE + result.poster_path
     // TMDB doesn't return director/actors in the search endpoint — you must call /movie/{id}/credits if you need them.
@@ -163,12 +176,12 @@ const selectResult = (result) => {
 
 
     loading.value = true;
-    
-     setTimeout(() => {
-                saveMovie();
-            }, 500); // 1000 ms = 1 second
 
-            searchResults.value = [];
+    setTimeout(() => {
+        saveMovie();
+    }, 500); // 1000 ms = 1 second
+
+    searchResults.value = [];
 
 }
 
@@ -219,62 +232,208 @@ const openSearchWindow = (ean) => {
             </div>
         </div>
 
-        <Dialog v-model:visible="visible" header="Edit Profile" :style="{ width: '70rem' }">
-            <span class="text-surface-500 dark:text-surface-400 block mb-8">Update movie information. </span>
-            <!-- TMDB search results (horizontal scroll) -->
-            <div v-if="searchResults.length" class="mb-6">
-                <div class="flex gap-4 overflow-x-auto py-2">
-                    <div v-for="result in searchResults" :key="result.id" class="w-48 flex-shrink-0">
-                        <div class="rounded shadow-sm overflow-hidden">
-                            <img v-if="result.poster_path" :src="`https://image.tmdb.org/t/p/w300${result.poster_path}`"
-                                :alt="result.title || result.name" class="w-full h-64 object-cover" />
-                            <div v-else class="w-full h-64 bg-gray-100 flex items-center justify-center">
-                                <span class="text-sm text-gray-500">No poster</span>
+<Dialog
+    v-model:visible="visible"
+    modal
+    header="Edit Movie"
+    :style="{ width: '75rem' }"
+    :breakpoints="{ '1200px': '90vw', '768px': '100vw' }"
+>
+    <p class="text-surface-500 dark:text-surface-400 mb-6">
+        Update movie information and link it to IMDB/TMDB.
+    </p>
+
+    <div class="grid grid-cols-12 gap-6">
+        <!-- LEFT: FORM -->
+        <div class="col-span-8 space-y-6">
+
+            <!-- MEDIA / STORAGE -->
+            <Card>
+                <template #title>Media & Storage</template>
+                <template #content>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Media type</label>
+                            <Select
+                                v-model="movieForm.selectedMedia"
+                                :options="medias"
+                                optionLabel="name"
+                                placeholder="Select media"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Edition</label>
+                            <Select
+                                v-model="movieForm.movie_edition"
+                                :options="editions"
+                                optionLabel="name"
+                                placeholder="Select edition"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <div class="flex items-center gap-3 pt-2">
+                            <ToggleSwitch v-model="movieForm.ripped" />
+                            <span class="text-sm">Ripped</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Storage box</label>
+                            <InputText v-model="movieForm.storagebox" class="w-full" />
+                        </div>
+                    </div>
+                </template>
+            </Card>
+
+            <!-- TITLE & SEARCH -->
+            <Card>
+                <template #title>Title & IMDB Search</template>
+                <template #content>
+                    <div class="space-y-4">
+                        <div v-show="false">
+                            <label class="block text-sm font-medium mb-1">Title</label>
+                            <InputText v-model="movieForm.title" class="w-full" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Title</label>
+                            <div class="flex gap-2">
+                                <InputText
+                                    v-model="movieForm.alternativetitle"
+                                    class="flex-1"
+                                    placeholder="Search title on IMDB"
+                                />
+                                <Button
+                                    icon="pi pi-search"
+                                    label="Search"
+                                    @click="searchMovieDb(movieForm.alternativetitle)"
+                                />
                             </div>
                         </div>
 
-                        <div class="mt-2">
-                            <div class="font-semibold text-sm truncate">{{ result.title || result.name }}</div>
-                            <div class="text-xs text-gray-500">{{ (result.release_date || '').slice(0, 4) }}</div>
-                            <div class="mt-2 flex gap-2">
-                                <Button size="small" label="Use" @click="selectResult(result)" />
-                                <a :href="`https://www.themoviedb.org/movie/${result.id}`" target="_blank"
-                                    class="text-xs self-center text-blue-600 underline">Open</a>
+                        <div class="w-32">
+                            <label class="block text-sm font-medium mb-1">Year</label>
+                            <InputText v-model="movieForm.year" />
+                        </div>
+                    </div>
+                </template>
+            </Card>
+
+            <!-- SEARCH RESULTS -->
+            <Card v-if="searchResults.length">
+                <template #title>Search results</template>
+                <template #content>
+                    <div class="flex gap-4 overflow-x-auto py-2">
+                        <div
+                            v-for="result in searchResults"
+                            :key="result.id"
+                            class="w-48 flex-shrink-0"
+                        >
+                            <div
+                                class="rounded-lg overflow-hidden shadow hover:shadow-lg transition"
+                            >
+                                <img
+                                    v-if="result.poster_path"
+                                    :src="`https://image.tmdb.org/t/p/w300${result.poster_path}`"
+                                    class="w-full h-64 object-cover"
+                                />
+                                <div
+                                    v-else
+                                    class="w-full h-64 bg-gray-100 flex items-center justify-center"
+                                >
+                                    <span class="text-sm text-gray-500">No poster</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-2 space-y-1">
+                                <div class="font-semibold text-sm truncate">
+                                    {{ result.title || result.name }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    {{ (result.release_date || '').slice(0, 4) }}
+                                </div>
+
+                                <Button
+                                    size="small"
+                                    label="Use this"
+                                    severity="success"
+                                    class="w-full mt-2"
+                                    @click="selectResult(result)"
+                                />
+
+                                <a
+                                    :href="`https://www.themoviedb.org/movie/${result.id}`"
+                                    target="_blank"
+                                    class="block text-center text-xs text-blue-600 underline mt-1"
+                                >
+                                    Open on TMDB
+                                </a>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </template>
+            </Card>
 
-                      <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">Media type</label>
-        <Select v-model="movieForm.selectedMedia" :options="medias" optionLabel="name" placeholder="Select media" />
-            </div>
-                     <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">Ripped</label>
-        <ToggleSwitch v-model="movieForm.ripped" />
-            </div>
+        </div>
 
-            <div class="flex items-center gap-4 mb-2">
-                <label for="username" class="font-semibold w-24 ">Title</label>
-                <InputText id="title" v-model="movieForm.title" class="flex-auto" autocomplete="off" />
-            </div>
-           <div class="flex items-center gap-4 mb-2">
-                <label for="username" class="font-semibold w-24 ">Alternative Title</label>
-                <InputText id="title" v-model="movieForm.alternativetitle" class="flex-auto" autocomplete="off" />
-                <Button label="Search" icon="pi pi-search" @click="searchMovieDb(movieForm.alternativetitle)" />
-            </div>
-            <div class="flex items-center gap-4 mb-2">
-                <label for="email" class="font-semibold w-24">Year</label>
-                <InputText id="year" v-model="movieForm.year" class="flex-auto" autocomplete="off" />
-            </div>
- 
+        <!-- RIGHT: COVER -->
+        <div class="col-span-4">
+            <Card>
+                <template #title>Scanned Cover</template>
+                <template #content>
+                    <div class="space-y-3">
+                        <div class="rounded overflow-hidden shadow">
+                            <img
+                                v-if="movieForm.scanimg"
+                                :src="`/storage/images/${movieForm.scanimg}`"
+                                :style="{ transform: `rotate(${rotation}deg)` }"
+                                class="w-full h-auto object-cover transition-transform"
+                            />
+                            <div
+                                v-else
+                                class="w-full h-64 bg-gray-100 flex items-center justify-center"
+                            >
+                                <span class="text-sm text-gray-500">No cover scanned</span>
+                            </div>
+                        </div>
 
+                        <div class="flex justify-center gap-2">
+                            <Button
+                                icon="pi pi-undo"
+                                text
+                                @click="rotation -= 90"
+                                v-tooltip="'Rotate left'"
+                            />
+                            <Button
+                                icon="pi pi-refresh"
+                                text
+                                @click="rotation += 90"
+                                v-tooltip="'Rotate right'"
+                            />
+                        </div>
+                    </div>
+                </template>
+            </Card>
+        </div>
+    </div>
 
-            <div class="flex justify-end gap-2">
-                <Button type="button" label="Cancel" severity="secondary" @click="visible = false"></Button>
-                <Button type="button" label="Save" @click="saveMovie()"></Button>
-            </div>
-        </Dialog>
+    <!-- FOOTER -->
+    <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+        <Button
+            severity="secondary"
+            label="Cancel"
+            @click="visible = false"
+        />
+        <Button
+            severity="primary"
+            label="Save"
+            icon="pi pi-check"
+            @click="saveMovie()"
+        />
+    </div>
+</Dialog>
+
     </AuthenticatedLayout>
 </template>

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string("mediatype")->nullable();
             $table->string("poster_path")->nullable();
             $table->string("backdrop_path")->nullable();
+            $table->string("scanimg")->nullable();
             $table->longText('plot')->nullable();
             $table->integer('duration')->nullable();    // minutter
             $table->date('releast_at')->nullable(); 
@@ -32,6 +33,10 @@ return new class extends Migration
             $table->string("imdb_id")->nullable();
             $table->string("plex_id")->nullable();
             $table->boolean("ripped")->default(0);
+            $table->string("movie_edition")->default("Standard");
+            $table->integer("storagebox")->nullable();
+
+            
 
         });
     }

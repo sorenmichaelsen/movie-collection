@@ -156,7 +156,10 @@ class TheMovieDbApiService
         $ean = null,
         $physicalMedia,
         $alternativeTitle = null,
-        $ripped
+        $ripped,
+        $movie_edition,
+        $storagebox,
+        $scanimg
     ): ?\App\Models\Movie {
         $details = $this->getMovieDetails($tmdbId, 'en-US');
         $credits = $this->getMovieCredits($tmdbId, 'en-US');
@@ -166,11 +169,11 @@ class TheMovieDbApiService
             return null;
         }
 
-        return \DB::transaction(function () use ($details, $credits, $tmdbId, $ean, $physicalMedia, $alternativeTitle, $ripped) {
+        return \DB::transaction(function () use ($details, $credits, $tmdbId, $ean, $physicalMedia, $alternativeTitle, $ripped, $storagebox, $movie_edition,$scanimg) {
 
             // Opret ny film hvis ikke eksisterer, med quantity = 1
             $movie = Movie::firstOrCreate(
-                ['tmdb_id' => $tmdbId],
+                ['tmdb_id' => $tmdbId, 'movie_edition' => $movie_edition],
                 [
                     'title'             => $details['title'] ?? ($details['original_title'] ?? 'Unknown'),
                     'releast_at'        => $details['release_date'] ?? null,
@@ -184,8 +187,11 @@ class TheMovieDbApiService
                     'imdb_id'           => $details['imdb_id'] ?? null,
                     'alternative_title' => $alternativeTitle,
                     'quantity'          => 1,
-                    'ripped'            =>$ripped
-                ]
+                    'ripped'            =>$ripped,
+                    'storagebox'        => $storagebox,
+                    'movie_edition'     => $movie_edition,
+                    'scanimg'           => $scanimg
+                    ]
             );
 
             // Hvis filmen allerede eksisterer → increment quantity

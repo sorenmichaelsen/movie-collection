@@ -26,7 +26,10 @@ class Movie extends Model
         'plex_id',
         'tmdb_id',
         'scanimg',
-        'ripped'
+        'ripped',
+        'movie_edition',
+        'storagebox',
+        'scanimg'
 
     ];
 

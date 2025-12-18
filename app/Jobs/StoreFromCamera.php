@@ -37,7 +37,8 @@ class StoreFromCamera implements ShouldQueue
      */
     public function handle(): void
     {
-       // Log::info([$this->title, $this->year, $this->media]);
+        // Log::info("SotreFromCam");
+        // Log::info([$this->title, $this->year, $this->media, $this->image]);
 
             try {
                 if ($this->title) {
@@ -45,7 +46,7 @@ class StoreFromCamera implements ShouldQueue
                         'title'     => $this->title,
                         'media'     => $this->media,
                         'year'      => $this->year,
-                        'imgpath'   => $this->image,
+                        'scanimg'   => $this->image,
                         'director'  => $this->director,
                         'actors'    => $this->actors,
 
