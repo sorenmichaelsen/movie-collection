@@ -11,7 +11,7 @@ class ManualMovieHandlingController extends Controller
     public function updatehandlelistmovie(Request $request)
     {
     //    Log::info($request->all());
-        $tmdb               = new TheMovieDbApiService;
+        $tmdb               = new TheMovieDbApiService; 
         $remove_from_manual = manualMovieHandling::find($request->id);
 
         $details  = $tmdb->getMovieDetails($request->tmdb_id);
@@ -21,6 +21,11 @@ class ManualMovieHandlingController extends Controller
         $store = $tmdb->importMovieWithCredits($request->tmdb_id, $remove_from_manual->eannumber ?? null, $request->selectedMedia['name'] ?? DVD, $remove_from_manual->title ?? "", $request->ripped ?? false, $request->movie_edition['name'] ?? "Standard", $request->storagebox ?? null, $request->scanimg ?? null);
 
         $remove_from_manual->delete();
+    }
+    public function deletehandlelistmovie(Request $request) {
+        $movie = manualMovieHandling::find($request->id);
+        $movie->delete();
+        //return ["error"=>0,"msg"=>"Removed from manual handling list"];
     }
     public function updatemovie(Request $request)
     {

@@ -107,7 +107,35 @@ const searchMovie = (id) => {
         .finally(() => loading.value = false)
 
 }
-
+const deleteMovie = () => {
+    movieForm.post(route('deletehandlelistmovie'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.add({ severity: 'success', summary: 'Film fjernet', detail: 'Filmen er fjernet ffra listen', life: 3000 });
+            visible.value = false;
+            movieForm.id = ""
+            movieForm.title = ""
+            movieForm.year = ""
+            movieForm.alternativetitle = ""
+            movieForm.plot = "";
+            movieForm.ean = "";
+            movieForm.imgpath = "";
+            movieForm.actors = "";
+            movieForm.director = "";
+            movieForm.imdb = "";
+        },
+        onError: (errors) => {
+            for (const key in errors) {
+                if (Object.prototype.hasOwnProperty.call(errors, key)) {
+                    const messages = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
+                    messages.forEach(message => {
+                        showToast('Valideringsfejl', message, 'error');
+                    });
+                }
+            }
+        }
+    });
+}
 const saveMovie = () => {
     movieForm.post(route('updatehandlelistmovie'), {
         preserveScroll: true,
@@ -420,11 +448,14 @@ const openSearchWindow = (ean) => {
     </div>
 
     <!-- FOOTER -->
+
     <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+
         <Button
             severity="secondary"
             label="Cancel"
             @click="visible = false"
+
         />
         <Button
             severity="primary"
@@ -433,6 +464,12 @@ const openSearchWindow = (ean) => {
             @click="saveMovie()"
         />
     </div>
+                  <Button
+            severity="danger"
+            label="Delete"
+           @click="deleteMovie()"
+            
+        />
 </Dialog>
 
     </AuthenticatedLayout>
