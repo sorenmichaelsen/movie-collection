@@ -82,8 +82,16 @@ const editions = [
 /* --------------------------------------------------
  Helpers
 -------------------------------------------------- */
+const DEFAULT_MEDIA = { name: 'Dvd' }
+
 const resetForm = () => {
-    movieForm.reset()
+    movieForm.reset({
+        storagebox: movieForm.storagebox,
+        ripped: movieForm.ripped,
+        selectedMedia: movieForm.selectedMedia || DEFAULT_MEDIA
+    })
+
+
     searchResults.value = []
     visible.value = false
     rotation.value = 0
@@ -113,11 +121,7 @@ const showModal = (data) => {
     movieForm.ean = data.eannumber
     movieForm.scanimg = data.scanimg
 
-    /* Existing meta */
-    movieForm.selectedMedia = { name: data.media || 'Dvd' }
-    movieForm.movie_edition = { name: data.movie_edition || 'Standard' }
-    movieForm.ripped = !!data.ripped
-    movieForm.storagebox = data.storagebox || ''
+   
 
     visible.value = true
 }
