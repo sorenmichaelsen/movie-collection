@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\manualMovieHandling;
+use App\Models\Movie;
 use App\Services\TheMovieDbApiService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -39,4 +40,10 @@ class ManualMovieHandlingController extends Controller
             'count'  => $movies->total(), // or your old $totalMovies if you prefer
         ]);
     }
+
+    public function movieExist(Request $request) {
+        $movieCount = Movie::where("tmdb_id",$request->tmdb_id)->count();
+        return $movieCount;
+    }
+
 }

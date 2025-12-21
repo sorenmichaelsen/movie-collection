@@ -9,6 +9,7 @@ import PrimeVue from 'primevue/config'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import ToastService from 'primevue/toastservice';
+import ConfirmationService from 'primevue/confirmationservice';
 
 import Aura from '@primeuix/themes/aura';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -25,6 +26,7 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue)
             .use(ToastService)
+            .use(ConfirmationService)
             .use(PrimeVue, {
                 theme: {
                     preset: Aura

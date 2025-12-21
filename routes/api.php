@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\movieImporter;
 use App\Http\Controllers\MoviesController;
+use App\Http\Controllers\ManualMovieHandlingController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -18,3 +19,6 @@ Route::get('/search/themoviedb', [MoviesController::class, 'searchthemovedb'])->
 Route::get('/search/themoviedbdetails', [MoviesController::class, 'theMovieDbDetails'])->name('themoviedbdetails');
 
 Route::get('/movies/search', [MoviesController::class, 'localSearch']);
+
+Route::get('/movies/exist', [ManualMovieHandlingController::class, 'movieExist']);
+

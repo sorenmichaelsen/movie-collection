@@ -12,9 +12,9 @@ class movieImporter extends Controller
 {
     public function createFromCamera(Request $request)
     {
-        $request->validate([
-            'image' => 'required|file|image|max:1024', // optional validation
-        ]);
+        // $request->validate([
+        //     'image' => 'required|file|image|max:1024', // optional validation
+        // ]);
 
         // Store file
         $filename = Str::random(10) . ".jpg";
@@ -22,9 +22,13 @@ class movieImporter extends Controller
         if ($year == "None") {
             $year = null;
         }
+        if($request->file('image')) {
         $path = $request->file('image')->storeAs('images', $filename, 'public');
-  
+
+        }
+        
         StoreFromCamera::dispatch($request->title, $year, $request->director, $request->actors, $filename, "DVD");
+        return 1;
     }
 
     public function create(Request $request)
