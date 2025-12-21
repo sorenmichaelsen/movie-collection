@@ -23,8 +23,7 @@ class movieImporter extends Controller
             $year = null;
         }
         if($request->file('image')) {
-        $path = $request->file('image')->storeAs('images', $filename, 'public');
-
+            $path = $request->file('image')->storeAs('images', $filename, 'public');
         }
         
         StoreFromCamera::dispatch($request->title, $year, $request->director, $request->actors, $filename, "DVD");

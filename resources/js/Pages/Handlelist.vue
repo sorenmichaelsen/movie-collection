@@ -169,6 +169,10 @@ const movieExist = async (tmdbId) => {
                 }
             })
         } 
+        else {
+             saveMovie()
+                    searchResults.value = []
+        }
     } finally {
         loading.value = false
     }
