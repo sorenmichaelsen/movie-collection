@@ -171,6 +171,7 @@ const movieExist = async (tmdbId) => {
         else {
              saveMovie()
                     searchResults.value = []
+
         }
     } finally {
         loading.value = false
@@ -195,6 +196,8 @@ const saveMovie = () => {
         onSuccess: () => {
             showSuccess('Gemt', 'Filmen er opdateret')
             resetForm()
+            movieForm.alternativetitle = ''
+
         }
     })
 }
