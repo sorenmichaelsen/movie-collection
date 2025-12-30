@@ -34,6 +34,9 @@ const showingNavigationDropdown = ref(false);
                                  <NavLink :href="route('handlelist')" :active="route().current('handlelist')">
                                     Manual handle
                                 </NavLink>
+                                 <NavLink :href="route('manuallyenter')" :active="route().current('manuallyenter')">
+                                    Manually enter
+                                </NavLink>
                             </div>
                         </div>
 

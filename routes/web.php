@@ -32,6 +32,10 @@ Route::get('/ai', [movieCoverUpload::class, 'ai_call']);
 
 
 Route::get('/handlelist', [ManualMovieHandlingController::class, 'handlelist'])->name('handlelist');
+Route::get('/manuallyenter', [ManualMovieHandlingController::class, 'manuallyenter'])->name('manuallyenter');
+
+
+
 Route::post('/updatehandlelistmovie', [ManualMovieHandlingController::class, 'updatehandlelistmovie'])->name('updatehandlelistmovie');
 Route::post('/deletehandlelistmovie', [ManualMovieHandlingController::class, 'deletehandlelistmovie'])->name('deletehandlelistmovie');
 

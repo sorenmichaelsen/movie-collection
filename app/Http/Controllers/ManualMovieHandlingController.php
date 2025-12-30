@@ -20,8 +20,10 @@ class ManualMovieHandlingController extends Controller
         $external = $tmdb->getExternalIds($request->tmdb_id);
 
         $store = $tmdb->importMovieWithCredits($request->tmdb_id, $remove_from_manual->eannumber ?? null, $request->selectedMedia['name'] ?? DVD, $remove_from_manual->title ?? "", $request->ripped ?? false, $request->movie_edition['name'] ?? "Standard", $request->storagebox ?? null, $request->scanimg ?? null);
-
+        if($request->manuallyEnter == 0) {
         $remove_from_manual->delete();
+
+        }
     }
     public function deletehandlelistmovie(Request $request) {
         $movie = manualMovieHandling::find($request->id);
@@ -45,5 +47,11 @@ class ManualMovieHandlingController extends Controller
         $movieCount = Movie::where("tmdb_id",$request->tmdb_id)->count();
         return $movieCount;
     }
+
+public function manuallyenter() {
+           return Inertia::render('ManuallyEnter', [
+            
+        ]);
+}
 
 }
