@@ -237,6 +237,8 @@ const deleteMovie = () => {
                         <InputText
                             v-model="movieForm.alternativetitle"
                             class="flex-1"
+                            @keyup.enter="searchMovieDb"
+
                         />
                         <Button
                             label="Search"
